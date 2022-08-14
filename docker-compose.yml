@@ -1,0 +1,126 @@
+mysql:
+  restart: always
+  image: sameersbn/mysql:latest
+  environment:
+    - DB_USER=user
+    - DB_PASS=password
+    - DB_NAME=redmine_production,gitlabhq_production
+  volumes:
+    - /volume1/docker/redmine_gitlab_jenkins/mysql:/var/lib/mysql
+
+redmine:
+  restart: always
+  image: sameersbn/redmine:latest
+  links:
+    - mysql:mysql
+  environment:
+    - TZ=Asia/Tokyo
+    - DB_ADAPTER=mysql2
+    - DB_HOST=mysql
+    - DB_PORT=3306
+    - DB_USER=user
+    - DB_PASS=password
+    - DB_NAME=redmine_production
+    - REDMINE_PORT=30000
+    - REDMINE_HTTPS=false
+    - REDMINE_RELATIVE_URL_ROOT=/
+    - REDMINE_SECRET_TOKEN=
+
+    - REDMINE_SUDO_MODE_ENABLED=false
+    - REDMINE_SUDO_MODE_TIMEOUT=15
+
+    - REDMINE_CONCURRENT_UPLOADS=2
+
+    - REDMINE_BACKUP_SCHEDULE=
+    - REDMINE_BACKUP_EXPIRY=
+    - REDMINE_BACKUP_TIME=
+
+    - SMTP_ENABLED=false
+    - SMTP_METHOD=smtp
+    - SMTP_DOMAIN=www.example.com
+    - SMTP_HOST=smtp.gmail.com
+    - SMTP_PORT=587
+    - SMTP_USER=mailer@example.com
+    - SMTP_PASS=password
+    - SMTP_STARTTLS=true
+    - SMTP_AUTHENTICATION=:login
+
+    - IMAP_ENABLED=false
+    - IMAP_HOST=imap.gmail.com
+    - IMAP_PORT=993
+    - IMAP_USER=mailer@example.com
+    - IMAP_PASS=password
+    - IMAP_SSL=true
+    - IMAP_INTERVAL=30
+    
+  ports:
+    - "30000:80"
+  volumes:
+    - /volume1/docker/redmine_gitlab_jenkins/redmine/redmine:/home/redmine/data
+gitlab-redis:
+  restart: always
+  image: sameersbn/redis:latest
+  volumes:
+    - /volume1/docker/redmine_gitlab_jenkins/gitlab/redis:/var/lib/redis
+    
+gitlab:
+  restart: always
+  image: sameersbn/gitlab:11.10.4
+  links:
+    - gitlab-redis:redisio
+    - mysql:mysql
+  environment:
+    - DEBUG=false
+    - DB_ADAPTER=mysql2
+    - DB_HOST=mysql
+    - DB_USER=user
+    - DB_PASS=password
+    - DB_NAME=gitlabhq_production
+    - TZ=Asia/Tokyo
+    - GITLAB_TIMEZONE=Tokyo
+
+    - GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alphanumeric-string
+
+    - GITLAB_HOST=gitlab.samovar.myds.me
+    - GITLAB_PORT=30001
+    - GITLAB_SSH_PORT=
+    - GITLAB_RELATIVE_URL_ROOT=/
+
+    - GITLAB_NOTIFY_ON_BROKEN_BUILDS=true
+    - GITLAB_NOTIFY_PUSHER=false
+
+    - GITLAB_EMAIL=notifications@example.com
+    - GITLAB_EMAIL_REPLY_TO=noreply@example.com
+    - GITLAB_INCOMING_EMAIL_ADDRESS=reply@example.com
+
+    - GITLAB_BACKUP_SCHEDULE=daily
+    - GITLAB_BACKUP_TIME=01:00
+
+    - SMTP_ENABLED=false
+    - SMTP_DOMAIN=www.example.com
+    - SMTP_HOST=smtp.gmail.com
+    - SMTP_PORT=587
+    - SMTP_USER=mailer@example.com
+    - SMTP_PASS=password
+    - SMTP_STARTTLS=true
+    - SMTP_AUTHENTICATION=login
+
+    - IMAP_ENABLED=false
+    - IMAP_HOST=imap.gmail.com
+    - IMAP_PORT=993
+    - IMAP_USER=mailer@example.com
+    - IMAP_PASS=password
+    - IMAP_SSL=true
+    - IMAP_STARTTLS=false
+    
+  ports:
+    - "30001:80"
+  volumes:
+    - /volume1/docker/redmine_gitlab_jenkins/gitlab/gitlab:/home/git/data
+jenkins:
+  restart: always
+  image: jenkins/jenkins:lts
+  ports:
+    - "30010:8080"
+  volumes:
+    - /volume1/docker/redmine_gitlab_jenkins/jenkins/jenkins:/var/jenkins_home
