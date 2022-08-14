@@ -80,6 +80,8 @@ gitlab:
     - GITLAB_TIMEZONE=Tokyo
 
     - GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alphanumeric-string
+    - GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alphanumeric-string
+    - GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alphanumeric-string
 
     - GITLAB_HOST=gitlab.samovar.myds.me
     - GITLAB_PORT=30001
